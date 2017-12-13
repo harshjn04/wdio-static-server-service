@@ -3,6 +3,9 @@ import fs from 'fs-extra';
 import Log from 'log';
 import morgan from 'morgan';
 import path from 'path';
+import http from 'http';
+import https from 'https';
+
 
 const DEFAULT_LOG_NAME = 'static-server.txt';
 
@@ -44,12 +47,23 @@ export default class StaticServerLauncher {
     });
 
     return new Promise((resolve, reject) => {
-      this.server.listen(this.port, (err) => {
+      http.createServer(this.server).listen(4566, (err) => {
         if (err) {
           reject(err);
         }
 
-        this.log.info(`Static server running at http://localhost:${port}`);
+        this.log.info(`Static server running at https://localhost:4566`);
+      });
+
+      https.createServer({
+        key: fs.readFileSync('key.pem'),
+        cert: fs.readFileSync('cert.pem')
+      }, this.server).listen(this.port, (err) => {
+        if (err) {
+          reject(err);
+        }
+
+        this.log.info(`Static secure server running at https://localhost:${port}`);
         resolve();
       });
     });
